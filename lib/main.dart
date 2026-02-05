@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // Nongeyemo iyi ngo isaha igaragare neza
 import 'firebase_options.dart';
 
 void main() async {
@@ -188,7 +189,7 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-// ---------------- LOAN LIST PAGE (REMAINS SAME AS PER REQUEST) ----------------
+// ---------------- LOAN LIST PAGE ----------------
 class LoanListPage extends StatefulWidget {
   const LoanListPage({super.key});
   @override
@@ -300,6 +301,10 @@ class _LoanListPageState extends State<LoanListPage> {
                     double bal = (data['balance'] ?? 0).toDouble();
                     double paid = (data['paidAmount'] ?? 0).toDouble();
                     double total = (data['totalAmount'] ?? 0).toDouble();
+                    
+                    // Gufata igihe transaction yabereye (Automatic Date)
+                    DateTime? date = (data['date'] as Timestamp?)?.toDate();
+                    String formattedDate = date != null ? DateFormat('dd/MM/yyyy HH:mm').format(date) : "N/A";
 
                     return Card(
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -316,6 +321,8 @@ class _LoanListPageState extends State<LoanListPage> {
                             child: Column(
                               children: [
                                 _infoRow(Icons.phone, "Phone", data['phone'] ?? "N/A"),
+                                _infoRow(Icons.calendar_today, "Date", formattedDate),
+                                _infoRow(Icons.badge, "Recorded By", "${data['recordedBy']} (${data['role']})"),
                                 _infoRow(Icons.shopping_basket, "Items", data['paintType'] ?? "N/A"),
                                 _infoRow(Icons.summarize, "Total", "$total Rwf"),
                                 _infoRow(Icons.price_check, "Paid", "$paid Rwf"),
@@ -369,7 +376,7 @@ class _LoanListPageState extends State<LoanListPage> {
   }
 }
 
-// ---------------- ADD LOAN PAGE (UPDATED UI) ----------------
+// ---------------- ADD LOAN PAGE ----------------
 class AddLoanPage extends StatefulWidget {
   const AddLoanPage({super.key});
   @override
@@ -401,14 +408,24 @@ class _AddLoanPageState extends State<AddLoanPage> {
     String itemsSummary = basket.map((e) => "${e.qty}x ${e.name}(${e.brand})").join(", ");
     double paid = double.parse(_paid.text.isEmpty ? "0" : _paid.text);
     
+    // Kubika amakuru ya User ufunguye app (Automatic Role and Name)
+    final user = FirebaseAuth.instance.currentUser;
+    String roleName = isAdmin ? "ADMIN" : "STAFF";
+    String userName = user?.email?.split('@')[0] ?? "Unknown User";
+
     await FirebaseFirestore.instance.collection('loans').add({
-      'customerName': _name.text, 'phone': _phone.text, 
-      'paintType': itemsSummary, 'totalAmount': grandTotal, 
-      'paidAmount': paid, 'balance': grandTotal - paid,
-      'recordedBy': FirebaseAuth.instance.currentUser?.email ?? "Staff",
-      'date': FieldValue.serverTimestamp(),
+      'customerName': _name.text.trim(), 
+      'phone': _phone.text.trim(), 
+      'paintType': itemsSummary, 
+      'totalAmount': grandTotal, 
+      'paidAmount': paid, 
+      'balance': grandTotal - paid,
+      'recordedBy': userName,
+      'role': roleName,
+      'date': FieldValue.serverTimestamp(), // Iyi niyo ishyiraho isaha automatic muri server
     });
-    Navigator.pop(context);
+    
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -479,7 +496,7 @@ class _AddLoanPageState extends State<AddLoanPage> {
   Widget _buildSectionTitle(String t) => Align(alignment: Alignment.centerLeft, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.indigo, fontSize: 12, letterSpacing: 1.2)));
 }
 
-// ---------------- LOGIN PAGE WITH BACKGROUND ----------------
+// ---------------- LOGIN PAGE ----------------
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -493,7 +510,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Professional Background Image (Paint/Hardware theme)
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -502,7 +518,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          // Dark Overlay for readability
           Container(color: const Color(0xFF1A237E).withOpacity(0.85)),
           Center(
             child: SingleChildScrollView(
@@ -517,22 +532,22 @@ class _LoginPageState extends State<LoginPage> {
                   TextField(
                     controller: _email, 
                     style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: "Email Address", labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
-                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
-                      prefixIcon: const Icon(Icons.email, color: Colors.white70),
+                    decoration: const InputDecoration(
+                      labelText: "Email Address", labelStyle: TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      prefixIcon: Icon(Icons.email, color: Colors.white70),
                     )
                   ),
                   const SizedBox(height: 15),
                   TextField(
                     controller: _pass, obscureText: true, 
                     style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: "Password", labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
-                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                    decoration: const InputDecoration(
+                      labelText: "Password", labelStyle: TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      prefixIcon: Icon(Icons.lock, color: Colors.white70),
                     )
                   ),
                   const SizedBox(height: 30),
@@ -564,7 +579,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// ---------------- SIGN UP PAGE WITH BACKGROUND ----------------
+// ---------------- SIGN UP PAGE ----------------
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
   @override
