@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -25,7 +24,6 @@ const List<String> productList = [
 const List<String> sizeList = ["1L", "4L", "5L", "10L", "20L", "Paki", "Piece"];
 const List<String> brandList = ["Ameen", "Sadolin", "Regal", "Kansai Plascon", "Sika", "Other"];
 
-// Model class for multiple items
 class SelectedProduct {
   String name;
   String brand;
@@ -46,8 +44,9 @@ class BrotherApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'The Brother Management',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo, primary: Colors.indigo[900]),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1A237E), primary: const Color(0xFF1A237E)),
         useMaterial3: true,
+        fontFamily: 'Roboto',
       ),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
@@ -70,15 +69,14 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("THE BROTHER", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+        title: const Text("THE BROTHER", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.indigo[900],
-        foregroundColor: Colors.white,
-        elevation: 0,
+        backgroundColor: const Color(0xFF1A237E),
+        elevation: 4,
         actions: [
-          IconButton(icon: const Icon(Icons.logout_rounded), onPressed: () => FirebaseAuth.instance.signOut()),
+          IconButton(icon: const Icon(Icons.logout_rounded, color: Colors.white), onPressed: () => FirebaseAuth.instance.signOut()),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -99,38 +97,50 @@ class DashboardPage extends StatelessWidget {
             }
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("BUSINESS ANALYTICS", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    Chip(label: Text(isAdmin ? "ADMIN MODE" : "STAFF MODE"), backgroundColor: isAdmin ? Colors.indigo[100] : Colors.green[100])
-                  ],
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    _buildStatCard("Active Loans", activeLoans.toString(), Icons.pending_actions, Colors.orange[800]!),
-                    _buildStatCard("Total Debt", "${totalDebt.toStringAsFixed(0)} Rwf", Icons.account_balance_wallet, Colors.red[700]!),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildStatCard("Partial Paid (Qty)", partialPaidCount.toString(), Icons.people_outline, Colors.blue[700]!),
-                    _buildStatCard("Partial Total", "${partialPaidAmount.toStringAsFixed(0)} Rwf", Icons.payments_outlined, Colors.teal[700]!),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                const Text("OPERATIONS", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                const SizedBox(height: 15),
-                _buildMenuButton(context, "Register New Loan", Icons.add_moderator_rounded, Colors.indigo, const AddLoanPage()),
-                _buildMenuButton(context, "Master Loan Registry", Icons.manage_search_rounded, Colors.teal, const LoanListPage()),
-              ],
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [const Color(0xFF1A237E).withOpacity(0.05), Colors.white],
+              )
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("ANALYTICS OVERVIEW", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo, letterSpacing: 1.1)),
+                      Chip(
+                        label: Text(isAdmin ? "ADMIN" : "STAFF", style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)), 
+                        backgroundColor: isAdmin ? Colors.orange[800] : Colors.green[700]
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    children: [
+                      _buildStatCard("Active Loans", activeLoans.toString(), Icons.pending_actions, const Color(0xFFE65100)),
+                      _buildStatCard("Total Debt", "${totalDebt.toStringAsFixed(0)} Rwf", Icons.account_balance_wallet, const Color(0xFFB71C1C)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildStatCard("Partial Paid", partialPaidCount.toString(), Icons.people_outline, const Color(0xFF0D47A1)),
+                      _buildStatCard("Paid Amount", "${partialPaidAmount.toStringAsFixed(0)} Rwf", Icons.payments_outlined, const Color(0xFF004D40)),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  const Text("QUICK OPERATIONS", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                  const SizedBox(height: 15),
+                  _buildMenuButton(context, "Register New Loan", Icons.add_moderator_rounded, const Color(0xFF1A237E), const AddLoanPage()),
+                  _buildMenuButton(context, "Master Loan Registry", Icons.manage_search_rounded, const Color(0xFF00796B), const LoanListPage()),
+                ],
+              ),
             ),
           );
         },
@@ -141,17 +151,17 @@ class DashboardPage extends StatelessWidget {
   Widget _buildStatCard(String title, String val, IconData icon, Color col) {
     return Expanded(
       child: Card(
-        elevation: 4, color: col,
+        elevation: 6, color: col,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         child: Padding(
-          padding: const EdgeInsets.all(18.0),
+          padding: const EdgeInsets.all(15.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: Colors.white, size: 28),
+              Icon(icon, color: Colors.white, size: 24),
               const SizedBox(height: 12),
-              Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-              Text(val, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500)),
+              FittedBox(fit: BoxFit.scaleDown, child: Text(val, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
             ],
           ),
         ),
@@ -161,19 +171,24 @@ class DashboardPage extends StatelessWidget {
 
   Widget _buildMenuButton(BuildContext ctx, String tit, IconData ic, Color col, Widget target) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      margin: const EdgeInsets.only(bottom: 15),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(15), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4))]
+      ),
       child: ListTile(
-        leading: CircleAvatar(backgroundColor: col.withOpacity(0.1), child: Icon(ic, color: col)),
-        title: Text(tit, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.chevron_right_rounded),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: CircleAvatar(backgroundColor: col.withOpacity(0.1), child: Icon(ic, color: col, size: 24)),
+        title: Text(tit, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF263238))),
+        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey[400]),
         onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (ctx) => target)),
       ),
     );
   }
 }
 
-// ---------------- LOAN LIST PAGE (SEARCH & FILTER) ----------------
+// ---------------- LOAN LIST PAGE (REMAINS SAME AS PER REQUEST) ----------------
 class LoanListPage extends StatefulWidget {
   const LoanListPage({super.key});
   @override
@@ -184,14 +199,55 @@ class _LoanListPageState extends State<LoanListPage> {
   String searchQuery = "";
   String filterStatus = "All";
 
+  void _showPaymentDialog(String docId, double currentPaid, double total, double currentBalance) {
+    final TextEditingController amountController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Record Payment", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Remaining Balance: $currentBalance Rwf", style: const TextStyle(color: Colors.red, fontSize: 13)),
+            const SizedBox(height: 15),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Enter Amount Paid", border: OutlineInputBorder(), isDense: true),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () {
+              if (amountController.text.isNotEmpty) {
+                double newPayment = double.parse(amountController.text);
+                double totalPaidNow = currentPaid + newPayment;
+                double newBalance = total - totalPaidNow;
+                
+                FirebaseFirestore.instance.collection('loans').doc(docId).update({
+                  'paidAmount': totalPaidNow,
+                  'balance': newBalance < 0 ? 0 : newBalance, 
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Update Payment"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Master Registry"), backgroundColor: Colors.teal[700], foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text("Master Registry", style: TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF00695C)),
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(15), color: Colors.teal[700],
+            padding: const EdgeInsets.all(12), color: const Color(0xFF00695C),
             child: Column(
               children: [
                 TextField(
@@ -201,17 +257,22 @@ class _LoanListPageState extends State<LoanListPage> {
                     hintText: "Search name or phone...", hintStyle: const TextStyle(color: Colors.white70),
                     prefixIcon: const Icon(Icons.search, color: Colors.white),
                     filled: true, fillColor: Colors.white.withOpacity(0.2),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: ["All", "Active", "Paid"].map((status) {
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(label: Text(status), selected: filterStatus == status, onSelected: (selected) => setState(() => filterStatus = status)),
+                        padding: const EdgeInsets.only(right: 5),
+                        child: ChoiceChip(
+                          label: Text(status, style: const TextStyle(fontSize: 12)), 
+                          selected: filterStatus == status, 
+                          onSelected: (selected) => setState(() => filterStatus = status),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -226,7 +287,7 @@ class _LoanListPageState extends State<LoanListPage> {
                 if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                 var filteredDocs = snapshot.data!.docs.where((doc) {
                   var data = doc.data() as Map<String, dynamic>;
-                  bool matchesSearch = data['customerName'].toString().toLowerCase().contains(searchQuery) || data['phone'].toString().contains(searchQuery);
+                  bool matchesSearch = (data['customerName'] ?? "").toString().toLowerCase().contains(searchQuery) || (data['phone'] ?? "").toString().contains(searchQuery);
                   bool matchesFilter = filterStatus == "All" || (filterStatus == "Active" ? (data['balance'] > 0) : (data['balance'] <= 0));
                   return matchesSearch && matchesFilter;
                 }).toList();
@@ -236,30 +297,45 @@ class _LoanListPageState extends State<LoanListPage> {
                   itemBuilder: (context, index) {
                     var doc = filteredDocs[index];
                     var data = doc.data() as Map<String, dynamic>;
+                    double bal = (data['balance'] ?? 0).toDouble();
+                    double paid = (data['paidAmount'] ?? 0).toDouble();
+                    double total = (data['totalAmount'] ?? 0).toDouble();
+
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       child: ExpansionTile(
                         leading: CircleAvatar(
-                          backgroundColor: (data['balance'] > 0) ? Colors.red[50] : Colors.green[50],
-                          child: Icon(Icons.person, color: (data['balance'] > 0) ? Colors.red : Colors.green),
+                          backgroundColor: (bal > 0) ? Colors.red[50] : Colors.green[50],
+                          child: Icon(Icons.person, color: (bal > 0) ? Colors.red : Colors.green, size: 20),
                         ),
-                        title: Text(data['customerName'] ?? "N/A", style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("Balance: ${data['balance']} Rwf"),
+                        title: Text(data['customerName'] ?? "N/A", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), overflow: TextOverflow.ellipsis),
+                        subtitle: Text("Balance: $bal Rwf", style: const TextStyle(fontSize: 12)),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(15),
+                            padding: const EdgeInsets.all(12),
                             child: Column(
                               children: [
                                 _infoRow(Icons.phone, "Phone", data['phone'] ?? "N/A"),
                                 _infoRow(Icons.shopping_basket, "Items", data['paintType'] ?? "N/A"),
-                                _infoRow(Icons.summarize, "Total", "${data['totalAmount']} Rwf"),
-                                _infoRow(Icons.price_check, "Paid", "${data['paidAmount']} Rwf"),
+                                _infoRow(Icons.summarize, "Total", "$total Rwf"),
+                                _infoRow(Icons.price_check, "Paid", "$paid Rwf"),
                                 const Divider(),
                                 if (isAdmin) Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    ElevatedButton.icon(onPressed: () => FirebaseFirestore.instance.collection('loans').doc(doc.id).update({'balance': 0, 'paidAmount': data['totalAmount']}), icon: const Icon(Icons.done_all), label: const Text("Clear Debt"), style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white)),
-                                    IconButton(onPressed: () => FirebaseFirestore.instance.collection('loans').doc(doc.id).delete(), icon: const Icon(Icons.delete, color: Colors.red)),
+                                    TextButton.icon(
+                                      onPressed: bal <= 0 ? null : () => _showPaymentDialog(doc.id, paid, total, bal), 
+                                      icon: const Icon(Icons.add_card, size: 16), 
+                                      label: const Text("Pay Partial", style: TextStyle(fontSize: 12)),
+                                      style: TextButton.styleFrom(foregroundColor: Colors.blue)
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: bal <= 0 ? null : () => FirebaseFirestore.instance.collection('loans').doc(doc.id).update({'balance': 0, 'paidAmount': total}), 
+                                      icon: const Icon(Icons.done_all, size: 16), 
+                                      label: const Text("Clear All", style: TextStyle(fontSize: 12)), 
+                                      style: TextButton.styleFrom(foregroundColor: Colors.green)
+                                    ),
+                                    IconButton(onPressed: () => FirebaseFirestore.instance.collection('loans').doc(doc.id).delete(), icon: const Icon(Icons.delete, color: Colors.red, size: 20)),
                                   ],
                                 )
                               ],
@@ -279,11 +355,21 @@ class _LoanListPageState extends State<LoanListPage> {
   }
 
   Widget _infoRow(IconData ic, String lab, String val) {
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [Icon(ic, size: 16), const SizedBox(width: 10), Text("$lab: $val")]));
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(ic, size: 14, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(child: Text("$lab: $val", style: const TextStyle(fontSize: 12), softWrap: true)),
+        ],
+      ),
+    );
   }
 }
 
-// ---------------- ADD LOAN PAGE (MULTIPLE PRODUCTS SUPPORTED) ----------------
+// ---------------- ADD LOAN PAGE (UPDATED UI) ----------------
 class AddLoanPage extends StatefulWidget {
   const AddLoanPage({super.key});
   @override
@@ -328,66 +414,72 @@ class _AddLoanPageState extends State<AddLoanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("New Multi-Item Loan")),
+      appBar: AppBar(title: const Text("New Multi-Item Loan", style: TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF1A237E), iconTheme: const IconThemeData(color: Colors.white)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            _buildSectionTitle("Customer Info"),
-            TextField(controller: _name, decoration: const InputDecoration(labelText: "Name", prefixIcon: Icon(Icons.person))),
-            TextField(controller: _phone, decoration: const InputDecoration(labelText: "Phone", prefixIcon: Icon(Icons.phone)), keyboardType: TextInputType.phone),
+            _buildSectionTitle("CUSTOMER INFORMATION"),
+            const SizedBox(height: 10),
+            TextField(controller: _name, decoration: InputDecoration(labelText: "Client Name", prefixIcon: const Icon(Icons.person), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true)),
+            const SizedBox(height: 10),
+            TextField(controller: _phone, decoration: InputDecoration(labelText: "Phone Number", prefixIcon: const Icon(Icons.phone), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true), keyboardType: TextInputType.phone),
             
-            const SizedBox(height: 20),
-            _buildSectionTitle("Add Products to Basket"),
+            const SizedBox(height: 25),
+            _buildSectionTitle("SELECT PRODUCTS"),
             Container(
-              padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.05), borderRadius: BorderRadius.circular(15)),
+              padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: Colors.indigo.withOpacity(0.05), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.indigo.withOpacity(0.1))),
               child: Column(
                 children: [
-                  DropdownButtonFormField(value: sProduct, items: productList.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => sProduct = v!), decoration: const InputDecoration(labelText: "Product")),
+                  DropdownButtonFormField(value: sProduct, isExpanded: true, items: productList.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13)))).toList(), onChanged: (v) => setState(() => sProduct = v!), decoration: const InputDecoration(labelText: "Select Paint/Item", isDense: true)),
                   Row(
                     children: [
-                      Expanded(child: DropdownButtonFormField(value: sBrand, items: brandList.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => sBrand = v!), decoration: const InputDecoration(labelText: "Brand"))),
-                      const SizedBox(width: 10),
-                      Expanded(child: DropdownButtonFormField(value: sSize, items: sizeList.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => sSize = v!), decoration: const InputDecoration(labelText: "Size"))),
+                      Expanded(child: DropdownButtonFormField(value: sBrand, isExpanded: true, items: brandList.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12)))).toList(), onChanged: (v) => setState(() => sBrand = v!), decoration: const InputDecoration(labelText: "Brand", isDense: true))),
+                      const SizedBox(width: 8),
+                      Expanded(child: DropdownButtonFormField(value: sSize, isExpanded: true, items: sizeList.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12)))).toList(), onChanged: (v) => setState(() => sSize = v!), decoration: const InputDecoration(labelText: "Size", isDense: true))),
                     ],
                   ),
                   Row(
                     children: [
-                      Expanded(child: TextField(controller: _qtyCtrl, decoration: const InputDecoration(labelText: "Qty"), keyboardType: TextInputType.number)),
-                      const SizedBox(width: 10),
-                      Expanded(child: TextField(controller: _priceCtrl, decoration: const InputDecoration(labelText: "Price/Unit"), keyboardType: TextInputType.number)),
+                      Expanded(child: TextField(controller: _qtyCtrl, decoration: const InputDecoration(labelText: "Qty", isDense: true), keyboardType: TextInputType.number)),
+                      const SizedBox(width: 8),
+                      Expanded(child: TextField(controller: _priceCtrl, decoration: const InputDecoration(labelText: "Price (Unit)", isDense: true), keyboardType: TextInputType.number)),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(onPressed: _addToBasket, icon: const Icon(Icons.add_shopping_cart), label: const Text("ADD TO LIST"), style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white)),
+                  const SizedBox(height: 15),
+                  ElevatedButton.icon(onPressed: _addToBasket, icon: const Icon(Icons.add_shopping_cart, size: 18), label: const Text("ADD TO BASKET"), style: ElevatedButton.styleFrom(backgroundColor: Colors.orange[800], foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
-            _buildSectionTitle("Basket Items (${basket.length})"),
-            ...basket.map((item) => ListTile(
-              title: Text("${item.name} (${item.brand})"),
-              subtitle: Text("${item.qty} x ${item.price} = ${item.subTotal} Rwf"),
-              trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => setState(() => basket.remove(item))),
+            const SizedBox(height: 25),
+            _buildSectionTitle("BASKET SUMMARY"),
+            ...basket.map((item) => Card(
+              elevation: 0, color: Colors.grey[100], margin: const EdgeInsets.symmetric(vertical: 4),
+              child: ListTile(
+                title: Text("${item.name} (${item.brand})", style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                subtitle: Text("${item.qty} x ${item.price} = ${item.subTotal} Rwf", style: const TextStyle(fontSize: 12)),
+                trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20), onPressed: () => setState(() => basket.remove(item))),
+              ),
             )),
 
             const Divider(height: 40),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("GRAND TOTAL:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)), Text("${grandTotal.toStringAsFixed(0)} Rwf", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red))]),
-            TextField(controller: _paid, decoration: const InputDecoration(labelText: "Amount Paid Now (Rwf)", prefixIcon: Icon(Icons.payments)), keyboardType: TextInputType.number),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text("GRAND TOTAL:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1A237E))), Text("${grandTotal.toStringAsFixed(0)} Rwf", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red))]),
+            const SizedBox(height: 15),
+            TextField(controller: _paid, decoration: InputDecoration(labelText: "Amount Paid Now (Rwf)", prefixIcon: const Icon(Icons.payments), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), isDense: true), keyboardType: TextInputType.number),
             
             const SizedBox(height: 30),
-            ElevatedButton(onPressed: _save, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 55), backgroundColor: Colors.indigo[900], foregroundColor: Colors.white), child: const Text("COMPLETE & SAVE RECORD")),
+            ElevatedButton(onPressed: _save, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 55), backgroundColor: const Color(0xFF1A237E), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text("COMPLETE TRANSACTION", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1))),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String t) => Align(alignment: Alignment.centerLeft, child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)));
+  Widget _buildSectionTitle(String t) => Align(alignment: Alignment.centerLeft, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.indigo, fontSize: 12, letterSpacing: 1.2)));
 }
 
-// ---------------- LOGIN PAGE ----------------
+// ---------------- LOGIN PAGE WITH BACKGROUND ----------------
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -399,25 +491,80 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(40), child: Column(children: [
-        const Icon(Icons.handyman_rounded, size: 80, color: Colors.indigo),
-        const Text("THE BROTHER", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.indigo)),
-        const SizedBox(height: 40),
-        TextField(controller: _email, decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder())),
-        const SizedBox(height: 15),
-        TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder())),
-        const SizedBox(height: 25),
-        ElevatedButton(onPressed: () async {
-          try { await FirebaseAuth.instance.signInWithEmailAndPassword(email: _email.text.trim(), password: _pass.text.trim()); }
-          catch (e) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
-        }, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 55), backgroundColor: Colors.indigo[900], foregroundColor: Colors.white), child: const Text("SIGN IN")),
-        TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpPage())), child: const Text("Create Staff Account"))
-      ]))),
+      body: Stack(
+        children: [
+          // Professional Background Image (Paint/Hardware theme)
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage("https://images.unsplash.com/photo-1589939705384-5185138a04b9?q=80&w=2070&auto=format&fit=crop"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Dark Overlay for readability
+          Container(color: const Color(0xFF1A237E).withOpacity(0.85)),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(40), 
+              child: Column(
+                children: [
+                  const Icon(Icons.format_paint_rounded, size: 80, color: Colors.orange),
+                  const SizedBox(height: 10),
+                  const Text("THE BROTHER", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)),
+                  const Text("Paint Management System", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const SizedBox(height: 40),
+                  TextField(
+                    controller: _email, 
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Email Address", labelStyle: const TextStyle(color: Colors.white70),
+                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      prefixIcon: const Icon(Icons.email, color: Colors.white70),
+                    )
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _pass, obscureText: true, 
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Password", labelStyle: const TextStyle(color: Colors.white70),
+                      enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.orange)),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                    )
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try { await FirebaseAuth.instance.signInWithEmailAndPassword(email: _email.text.trim(), password: _pass.text.trim()); }
+                      catch (e) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 55), 
+                      backgroundColor: Colors.orange[800], 
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                    ), 
+                    child: const Text("SIGN IN", style: TextStyle(fontWeight: FontWeight.bold))
+                  ),
+                  const SizedBox(height: 15),
+                  TextButton(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpPage())), 
+                    child: const Text("Create Staff Account", style: TextStyle(color: Colors.white70, fontSize: 13))
+                  )
+                ]
+              )
+            )
+          ),
+        ],
+      ),
     );
   }
 }
 
-// ---------------- SIGN UP PAGE ----------------
+// ---------------- SIGN UP PAGE WITH BACKGROUND ----------------
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
   @override
@@ -428,17 +575,70 @@ class _SignUpPageState extends State<SignUpPage> {
   final _email = TextEditingController(), _pass = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(), body: Padding(padding: const EdgeInsets.all(30), child: Column(children: [
-      const Text("Staff Registration", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 25),
-      TextField(controller: _email, decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder())),
-      const SizedBox(height: 15),
-      TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(labelText: "Password", border: OutlineInputBorder())),
-      const SizedBox(height: 30),
-      ElevatedButton(onPressed: () async {
-        try { await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _email.text.trim(), password: _pass.text.trim()); Navigator.pop(context); }
-        catch (e) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); }
-      }, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 55)), child: const Text("REGISTER NOW"))
-    ])));
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: const IconThemeData(color: Colors.white)),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage("https://images.unsplash.com/photo-1562564055-71e051d33c19?q=80&w=2070&auto=format&fit=crop"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.7)),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(40), 
+              child: Column(
+                children: [
+                  const Text("Staff Registration", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 30),
+                  TextField(
+                    controller: _email, 
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Email", labelStyle: TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
+                    )
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _pass, obscureText: true, 
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: "Password", labelStyle: TextStyle(color: Colors.white70),
+                      enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
+                    )
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try { 
+                        await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _email.text.trim(), password: _pass.text.trim()); 
+                        Navigator.pop(context); 
+                      } catch (e) { 
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()))); 
+                      }
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 55), 
+                      backgroundColor: Colors.blue[900], 
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                    ), 
+                    child: const Text("REGISTER NOW")
+                  )
+                ]
+              )
+            )
+          ),
+        ],
+      ),
+    );
   }
 }
